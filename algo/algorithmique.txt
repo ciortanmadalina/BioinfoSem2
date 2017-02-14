@@ -16,3 +16,9 @@ Types d'algorithmes
 Pour les situations ou on a un adversaire, on fait le perdre l'avantage de te connaitre)
 
 la recherche exhaustive est un bon approche au depart
+Complete or partial digest
+==========================
+A partir de toutes les distances possibles, recreer le segment d'origine
+
+
+2 ensembles sont homometriques = ils donnent la meme liste des distances, meme si les point de coupure sont differents
