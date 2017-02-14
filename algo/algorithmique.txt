@@ -1,0 +1,18 @@
+Algorithms
+===========
+big o < f( il fait au max f op)
+omega > f (il fait au moins f op)
+teta = f
+
+Types d'algorithmes
+=====================
+- exhaustives
+- branch and search (exclure les branches improbable)
+- greedy
+- dynamic programming(on a un tableau avec toutes les possibilites, on resolve des sous-problemes)
+- divide and conquer 
+- machine learning (collect statistics sur le passé, on commence la recherche par l'endroit le plus probable statistiquement)
+- randomized algorithmes (on cherche partout, mais l'ordre de recherche est donne alleatoirement. 
+Pour les situations ou on a un adversaire, on fait le perdre l'avantage de te connaitre)
+
+la recherche exhaustive est un bon approche au depart
