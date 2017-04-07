@@ -1,0 +1,449 @@
+
+for( a in -2 :2) {
+for( r in -2 : 2) {
+ print(paste("a = ", a, " r = ", r))
+ print(test_scores(school ="private", acad_motivation = a, relig_motivation =r))
+ print(test_scores(school ="public", acad_motivation = a, relig_motivation =r))
+ }}
+ 
+ for( a in -2 :2) {
+for( r in -2 : 2) {
+ print(paste("a = ", a, " r = ", r))
+ print(test_scores(school ="private", acad_motivation = a, relig_motivation =r))
+ print(test_scores(school ="public", acad_motivation = a, relig_motivation =r))
+ }}
+ 
+gf_boxplot(Cost ~ Sex, data = AARP)
+# Make a scatterplot using base, lattice, or ggplot2
+
+gf_point(Cost ~ Age, data = AARP)
+
+# Find the variable names in Runners 
+names(Runners)
+
+# Build models: handicap_model_1, handicap_model_2, handicap_model_3 
+handicap_model_1 <- lm(net ~ age, data = Runners)
+handicap_model_2 <- lm(net ~ sex, data = Runners)
+handicap_model_3 <- lm(net ~ age + sex, data = Runners)
+
+# For now, here's a way to visualize the models
+fmodel(handicap_model_1)
+fmodel(handicap_model_2)
+fmodel(handicap_model_3)
+
+library(rpart )
+
+
+# Build rpart model: model_2
+model_2 <- rpart( net ~ age + sex , cp = 0.002, data =  Runners )
+
+# Examine graph of model_2 (don't change)
+fmodel(model_2, ~ age + sex)
+
+run_again_model <- rpart(runs_again  ~ age + sex + net, cp = 0.005, data = Ran_twice)
+# Visualize the model (don't change)
+fmodel(run_again_model, ~ age + net, data = Ran_twice)
+
+# Display the variable names in the AARP data frame
+names(AARP)
+
+# Build a model: insurance_cost_model
+insurance_cost_model <- lm( Cost ~ Age + Sex + Coverage, data = AARP)
+
+# Construct a data frame: example_vals 
+
+example_vals <- data.frame(Age = 60, Sex = "F", Coverage = 200)
+# Predict insurance cost using predict()
+predict(insurance_cost_model, example_vals)
+
+# Load statisticalModeling
+library(statisticalModeling)
+
+# Calculate model output using evaluate_model()
+evaluate_model(insurance_cost_model, example_vals)
+
+# Build a model: insurance_cost_model
+insurance_cost_model <- lm(Cost ~ Age + Sex + Coverage, data = AARP)
+
+# Create a data frame: new_inputs_1
+new_inputs_1 <- data.frame(Age = c(30, 90), Sex = c("F", "M"), 
+                           Coverage = c(0, 100))
+
+# Use expand.grid(): new_inputs_2
+new_inputs_2 <- expand.grid(Age = c(30, 90), Sex = c("F", "M"), 
+                           Coverage = c(0, 100))
+
+# Use predict() for new_inputs_1 and new_inputs_2
+predict(insurance_cost_model , newdata = new_inputs_1)
+predict(insurance_cost_model, newdata = new_inputs_2)
+
+# Use evaluate_model() for new_inputs_1 and new_inputs_2
+evaluate_model(insurance_cost_model, data = new_inputs_1)
+evaluate_model(insurance_cost_model, data = new_inputs_2)
+
+
+ML
+====
+
+sqrt(mean(error^2))
+
+# Fit lm model: model
+model <- lm(price ~ . , diamonds)
+
+# Predict on full data: p
+p <- predict(model, diamonds)
+#head(p)
+# Compute errors: error
+#head(diamonds['price'])
+error <- p - diamonds[['price']]
+#head(error)
+
+#head(diamonds, n= 100)
+#?head
+# Calculate RMSE
+sqrt(mean(error ^ 2))
+
+# Set seed
+set.seed(42)
+
+# Shuffle row indices: rows
+rows <- sample(nrow(diamonds))
+
+# Randomly order data
+diamonds <- diamonds[rows, ]
+# Determine row to split on: split
+split <- round(nrow(mydata) * .80)
+
+# Create train
+train <- mydata[1:split, ]
+
+# Create test
+test <- mydata[(split + 1) : nrow(mydata),]
+# Fit lm model on train: model
+model <- lm(price ~ . , train)
+
+# Predict on test: p
+p <- predict(model, test)
+# Compute errors: error
+error <- p - test$price
+
+# Calculate RMSE
+sqrt(mean(error ^2 ))
+
+
+cross-validation
+===================
+# Fit lm model using 10-fold CV: model
+model <- train(
+  price ~ . , diamonds,
+  method = "lm",
+  trControl = trainControl(
+    method = "cv", number = 10,
+    verboseIter = TRUE
+  )
+)
+
+# Print model to console
+model
+
+# Fit lm model using 5 x 5-fold CV: model
+model <- train(
+  medv ~ ., Boston,
+  method = "lm",
+  trControl = trainControl(
+    method = "cv", number = 5,
+    repeats = 5, verboseIter = TRUE
+  )
+)
+
+# Print model to console
+model
+
+predict(model, Boston)
+
+Classification
+===================
+
+# Shuffle row indices: rows
+rows <- sample(nrow(Sonar))
+
+# Randomly order data: Sonar
+Sonar <- Sonar[rows ,]
+
+# Identify row to split on: split
+split <- round(nrow(Sonar) * 0.6)
+
+# Create train
+train <- Sonar[1 : split, ]
+
+# Create test
+test <- Sonar[(split + 1) : nrow(Sonar),]
+
+# Fit glm model: model
+model <- glm(Class ~. , family = "binomial", Sonar)
+
+# Predict on test: p
+predict(model, test, type = "response")
+
+model <- glm(Class ~., family = "binomial", train)
+
+# Predict on test: p
+p <- predict(model, test, type = "response")
+
+
+confusion matrix
+================
+
+# Calculate class probabilities: p_class
+
+p_class <- ifelse(p >0.5, "M", "R")
+
+v <- c("R", "M", "M", "R", "R")
+v1 <- c("M", "M", "R", "R", "R")
+
+table(v, v1)
+confusionMatrix(v, v1)
+# Create confusion matrix
+confusionMatrix(p_class, test$Class)
+head(test$Class)
+
+# Apply threshold of 0.9: p_class
+p_class <- ifelse( p > 0.9 , "M", "R")
+
+# Create confusion matrix
+confusionMatrix(p_class, test$Class)
+
+ROC
+======
+
+
+p <- predict(model, test, type = "response")
+summary(p)
+# Make ROC curve
+colAUC(p, test$Class, plotROC = TRUE)
+
+myControl <- trainControl(
+  method = "cv",
+  number = 10,
+  summaryFunction = twoClassSummary ,
+  classProbs = TRUE, # IMPORTANT!
+  verboseIter = TRUE
+)
+model <- train( Class ~. , Sonar, method = "glm", trControl=myControl)
+
+
+
+Random forest
+=================
+# Fit random forest: model
+model <- train(
+  quality ~ .,
+  tuneLength = 1,
+  data = wine, method = "ranger",
+  trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE)
+)
+
+# Print model to console
+model
+
+# Fit random forest: model
+model <- train(
+  quality ~.,
+  tuneLength = 3,
+  data = wine, method = "ranger",
+  trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE)
+)
+
+# Print model to console
+model
+
+# Plot model
+plot(model)
+# Fit random forest: model
+model <- train(
+  quality ~ .,
+  tuneGrid = data.frame(mtry = c(2, 3, 7)),
+  data = wine, method = "ranger",
+  trControl = trainControl(method = "cv", number = 5, verboseIter = TRUE)
+)
+
+# Print model to console
+model
+
+# Plot model
+plot(model)
+
+
+GLMNET
+========
+
+# Create custom trainControl: myControl
+myControl <- trainControl(
+  method = "cv", number = 10,
+  summaryFunction = twoClassSummary ,
+  classProbs = TRUE, # IMPORTANT!
+  verboseIter = TRUE
+)
+
+ # Fit glmnet model: model
+model <- train(
+  y ~ ., overfit,
+  method = "glmnet",
+  trControl = myControl
+)
+
+# Print model to console
+
+model
+# Print maximum ROC statistic
+max(model[["results"]])
+
+# Train glmnet with custom trainControl and tuning: model
+model <- train(
+  y ~ ., 
+  overfit ,
+  tuneGrid = expand.grid(alpha = 0:1,
+  lambda = seq(0.0001, 1, length = 20)),
+  method = "glmnet",
+  trControl = myControl
+)
+
+# Print model to console
+model
+
+# Print maximum ROC statistic
+max(model[["results"]][["ROC"]])
+
+median imputation
+=====================
+# Apply median imputation: model
+median_model <- train(
+  x = breast_cancer_x , y = breast_cancer_y,
+  method = "glm",
+  trControl = myControl,
+  preProcess = "medianImpute"
+)
+
+knn imputation
+==================
+# Apply KNN imputation: model2
+knn_model <- train(
+  x = breast_cancer_x , y = breast_cancer_y ,
+  method = "glm",
+  trControl = myControl,
+  preProcess = "knnImpute"
+)
+compare the 2 models:
+resamples.default(x = list(median_model = median_model, knn_model = knn_model))
+dotplot(resamples, metric = "ROC")
+
+
+center and scale for lm and glm
+# Fit glm with median imputation: model1
+model1 <- train(
+  x = breast_cancer_x, y = breast_cancer_y,
+  method = "glm",
+  trControl = myControl,
+  preProcess = "medianImpute"
+)
+
+# Print model1
+model1
+
+# Fit glm with median imputation and standardization: model2
+model2 <- train(
+  x = breast_cancer_x, y = breast_cancer_y,
+  method = "glm",
+  trControl = myControl,
+  preProcess = c('medianImpute',"center", "scale")
+  
+#Remove low variance of columns (constant or near constant)
+
+
+# Identify near zero variance predictors: remove_cols
+remove_cols <- nearZeroVar(bloodbrain_x , names = TRUE, 
+                           freqCut = 2, uniqueCut = 20)
+
+# Get all column names from bloodbrain_x: all_cols
+all_cols <- names(bloodbrain_x)
+
+# Remove from data: bloodbrain_x_small
+bloodbrain_x_small <- bloodbrain_x[ , setdiff(all_cols, remove_cols)]
+
+# Fit model on reduced data: model
+model <- train(x = bloodbrain_x_small , y = bloodbrain_y, method = "glm")
+
+
+#PCA principle components analysus
+# Fit glm model using PCA: model
+model <- train(
+  x = bloodbrain_x, y = bloodbrain_y ,
+  method = "glm", preProcess = c("pca")
+)
+
+Folds
+===========
+# Create custom indices: myFolds
+myFolds <- createFolds(churn_y, k = 5)
+
+# Create reusable trainControl object: myControl
+myControl <- trainControl(
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE, # IMPORTANT!
+  verboseIter = TRUE,
+  savePredictions = TRUE,
+  index = myFolds
+)
+
+
+
+model_glmnet <- train(
+  x = churn_x, y = churn_y,
+  metric = "ROC",
+  method = "glmnet",
+  trControl = myControl
+)
+
+model_rf <- train(
+  x = churn_x , y = churn_y,
+  metric = "ROC",
+  method = "ranger",
+  trControl = myControl 
+)
+
+compare model
+
+# Create model_list
+model_list <- list(item1 = model_glmnet , item2 = model_rf )
+
+# Pass model_list to resamples(): resamples
+resamples <- resamples(model_list)
+
+# Summarize the results
+summary(resamples)
+
+bwplot(resamples, metric = "ROC" )
+xyplot(resamples, metric="ROC")
+stack <- caretStack(model_list, method = "glm")
+dotplot(resamples, metric = "ROC" )
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
