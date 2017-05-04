@@ -1,0 +1,21 @@
+conda info --envs
+activate R-Env
+
+jupyter notebook
+
+conda create -n R-Env -c r r-essentials
+$ source activate R-Env
+$ conda install jupyter
+
+
+#
+# To activate this environment, use:
+# > activate R-Env
+#
+# To deactivate this environment, use:
+# > deactivate R-Env
+#
+# * for power-users using bash, you must source
+#
+
+install.packages(c('repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'devtools', 'uuid', 'digest'))
