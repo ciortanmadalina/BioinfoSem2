@@ -6,6 +6,7 @@ library(e1071)
 library(lazy)
 library(nnet)
 library(tree)
+library(ridge)
 
 rm(list=ls(all=TRUE))
 
@@ -119,10 +120,10 @@ rmse <- function (log_prediction, log_observation){
 
 
 
-filterFeatures <- function(modelName, X, Y){
+outputCorrelation <- function(modelName, X, Y){
   n <- ncol(X)
   size.CV<-floor(N/10)
-  
+  ranking <- numeric(n)
   CV.err<-matrix(0,nrow=n,ncol=10)
   
   for (i in 1:10) {
@@ -172,15 +173,20 @@ filterFeatures <- function(modelName, X, Y){
         model<- lazy(SalePrice~.,DS)
         Y.hat.ts<- predict(model,X.ts[,ranking[1:nb_features],drop=F])$h
       }
+      if(modelName == 'ridge'){
+        model<- linearRidge(SalePrice~.,DS)
+        Y.hat.ts <- predict(model,X.ts[,ranking[1:nb_features],drop=F])
+      }
       
       CV.err[nb_features,i]<-rmse(Y.hat.ts,Y.ts)
     }
   }  
   
   par(mfrow=c(1,1))
-  plot(1:nrow(CV.err),apply(CV.err,1,mean), type = "o", main = paste(modelName ,' selection'), xlab = "number of features", ylab = 'cross validaton error' )
+  plot(1:nrow(CV.err),apply(CV.err,1,mean), type = "o", main = paste(modelName ,' filter feature'), xlab = "number of features", ylab = 'cross validaton error' )
   
   writeLines(paste( modelName, " filter features: ",c(1:n)," ; CV error=",round(apply(CV.err,1,mean),digits=4), " ; std dev=",round(apply(CV.err,1,sd),digits=4)))
+  ranking
 }
 
 
@@ -257,7 +263,10 @@ mrmr <- function(modelName, X, Y) {
         model<- lazy(SalePrice~.,DS)
         Y.hat.ts<- predict(model,X.ts[,ranking[1:nb_features],drop=F])$h
       }
-      
+      if(modelName == 'ridge'){
+        model<- linearRidge(SalePrice~.,DS)
+        Y.hat.ts <- predict(model,X.ts[,ranking[1:nb_features],drop=F])
+      }
       CV.err[nb_features,i]<-rmse(Y.hat.ts,Y.ts)
     }
   }  
@@ -320,7 +329,10 @@ pca <- function(modelName, X, Y) {
         model<- lazy(SalePrice~.,DS)
         Y.hat.ts<- predict(model,X.ts[,1:nb_features,drop=F])$h
       }
-      
+      if(modelName == 'ridge'){
+        model<- linearRidge(SalePrice~.,DS)
+        Y.hat.ts <- predict(model,X.ts[,1:nb_features,drop=F])
+      }
       CV.err[nb_features,i]<-rmse(Y.hat.ts,Y.ts)
     }
   }  
@@ -388,6 +400,10 @@ forwardSelection <- function(modelName, X, Y) {
           model<- lazy(SalePrice~.,DS)
           Y.hat.ts<- predict(model,X.ts)$h
         }
+        if(modelName == 'ridge'){
+          model<- linearRidge(SalePrice~.,DS)
+          Y.hat.ts <- predict(model,X.ts)
+        }
         
         CV.err[j,i]<-rmse(Y.hat.ts,Y.ts)
       }
@@ -402,6 +418,7 @@ forwardSelection <- function(modelName, X, Y) {
   
   #print(paste('colnames(X)[selected] :', colnames(X)[selected]))
   #print(paste('colnames(X) ', colnames(X)))
+  selected
 }
 
 
@@ -451,7 +468,10 @@ runModel <- function(modelName, X, Y){
       model<- lazy(SalePrice~.,DS)
       Y.hat.ts<- predict(model,X.ts)$h
     }
-    
+    if(modelName == 'ridge'){
+      model<- linearRidge(SalePrice~.,DS)
+      Y.hat.ts <- predict(model,X.ts)
+    }
     CV.err[i]<-rmse(Y.hat.ts,Y.ts) 
   }
   print(paste(modelName, "  CV error=",round(mean(CV.err),digits=4), " ; std dev=",round(sd(CV.err),digits=4)))
@@ -505,6 +525,10 @@ runEnsemble <- function(modelName, X, Y){
       if(modelName == 'lazy'){
         model<- lazy(SalePrice~.,DS)
         Y.hat.ts.R[,r]<- predict(model,X.ts)$h
+      }
+      if(modelName == 'ridge'){
+        model<- linearRidge(SalePrice~.,DS)
+        Y.hat.ts.R[,r] <- predict(model,X.ts)
       }
       
     }
@@ -571,6 +595,11 @@ ensembleSimpleAverage <- function(models, X, Y){
           model<- lazy(SalePrice~.,DS)
           Y.hat.ts.R[,r]<- predict(model,X.ts)$h
         }
+        
+        if(modelName == 'ridge'){
+          model<- linearRidge(SalePrice~.,DS)
+          Y.hat.ts.R[,r] <- predict(model,X.ts)
+        }
       }
     }
     
@@ -605,7 +634,6 @@ corrplot(as.matrix(correlations[corr.idx,corr.idx]), type = 'upper', method='col
 length(corr.idx) #we have 14 features with a significative correlation with SalePrice
 
 #Let's remove the features uncorrelated to saleprice
-
 data <- data[, which(apply(corr.SalePrice, 1, function(x) (x > 0.2)))]
 
 
@@ -621,56 +649,146 @@ n<-ncol(X)    #Number of input variables
 
 
 
+#######################################
+##### Evaluate models
+#######################################
 
-filterFeatures('rpart', X, Y)
-filterFeatures('svm', X, Y)
-filterFeatures('lazy', X, Y)
-filterFeatures('tree', X, Y)
-filterFeatures('lm', X, Y)
+############# RPART ##################
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
 
-
-
-mrmr('rpart', X, Y)
-mrmr('svm', X, Y)
-mrmr('lazy', X, Y)
-mrmr('tree', X, Y)
-mrmr('lm', X, Y)
-
-
-
-
-pca('rpart', X, Y)
-pca('svm', X, Y)
-pca('lazy', X, Y)
-pca('tree', X, Y)
-pca('lm', X, Y)
-
-
-
-
-forwardSelection('rpart', X, Y)
-forwardSelection('svm', X, Y)
-forwardSelection('lazy', X, Y)
-forwardSelection('tree', X, Y)
-forwardSelection('lm', X, Y)
-
-
+runModel('rpart', X, Y) #0.0142
+outputCorrelation('rpart', X, Y) #rpart  filter features:  4  ; CV error= 0.0133  ; std dev= 0.0101
+mrmr('rpart', X, Y) # rpart Features:  5  ; CV error= 0.0137  ; std dev= 0.0075
+pca('rpart', X, Y) # rpart  Features:  2  ; CV error= 0.0179  ; std dev= 0.0148
+forwardSelection('rpart', X, Y) #[1] "Round  2  ; Selected feature:  14  ; CV error= 0.0119  ; std dev= 0.0093"
+runEnsemble('rpart', X, Y)# [1] "Ensemble  rpart   CV error= 0.015  ; std dev= 0.0077"
 ensembleSimpleAverage(c('rpart', 'rpart'), X, Y )
-runModel('rpart', X, Y)
-runEnsemble('rpart', X, Y)
+
+#the winner is outputCorrelation
+rpartIndexes <- outputCorrelation('rpart', X, Y)
+rpartFeatures <- X[, rpartIndexes[1:4]]
+
+runEnsemble('rpart', rpartFeatures, Y)
+
+X<- data[1:nrow(input),]
+#try on the whole dataset
+runModel('rpart', X, Y) #0.0139
+outputCorrelation('rpart', X, Y) #rpart  filter features:  24  ; CV error= 0.0129  ; std dev= 0.0115
+mrmr('rpart', X, Y) # rpart Features:  5  ; CV error= 0.0129  ; std dev= 0.0097
+pca('rpart', X, Y) # rpart  Features:  2  ; CV error= 0.0179  ; std dev= 0.0148
+forwardSelection('rpart', X, Y) # "Round  32  ; Selected feature:  33  ; CV error= 0.0096  ; std dev= 0.0096"
+runEnsemble('rpart', X, Y)#  CV error= 0.0162 
+
+#best performance with forward selection
+rpartIndexesTotal <- c(3, 14 , 1 , 4 , 7, 10, 11 ,13, 15, 20, 21, 22, 23 ,24 ,25, 26, 27 ,28 ,29 ,30, 31, 35, 36, 38, 39 ,40, 41, 42,  8 ,19, 17, 33 )
+rpartFeaturesTotal <- X[, rpartIndexesTotal]
+
+runEnsemble('rpart', rpartFeaturesTotal, Y)#CV error=  0.0106 
+
+
+
+############# SVM ##################
+
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
+
+runModel('svm', X, Y) #0.0155
+outputCorrelation('svm', X, Y) #14  ; CV error= 0.0136  ; std dev= 0.0076
+mrmr('svm', X, Y) # 7  ; CV error= 0.0128  ; std dev= 0.0064
+pca('svm', X, Y) #svm  Features:  19  ; CV error= 0.0141  ; std dev= 0.0087
+#forwardSelection('svm', X, Y) #Takes a lot of time  "Round  5  ; Selected feature:  15  ; CV error= 0.0066  ; std dev= 0.0055"
+runEnsemble('svm', X, Y)# # 0.0148
+
+#the winner is forward selection
+svmIndexes <- c(3, 14,4 , 8 ,15)
+svmFeatures <- X[, svmIndexes]
+runEnsemble('svm', svmFeatures, Y) # 0.007
+
+############# LAZY ##################
+
+X<- numeric.df[1:nrow(input),] #doesn't work well with one hot encoded cat features
+
+runModel('lazy', X, Y) #0.0403
+outputCorrelation('lazy', X, Y) #lazy  filter features:  18  ; CV error= 0.0066  ; std dev= 0.0057
+mrmr('lazy', X, Y) #lazy Features:  22  ; CV error= 0.0153  ; std dev= 0.0096
+pca('lazy', X, Y) #lazy  Features:  2  ; CV error= 0.0181  ; std dev= 0.0175
+forwardSelection('lazy', X, Y) # "Round  2  ; Selected feature:  13  ; CV error= 0.0102  ; std dev= 0.0081"
+runEnsemble('lazy', X, Y)# CV error= 0.0876
+
+#the winner is
+lazyIndexes <- outputCorrelation('lazy', X, Y)
+lazyFeatures <- X[, lazyIndexes[1:18]]
+
+runEnsemble('lazy', lazyFeatures, Y)#CV error= 0.0323
+
+############# TREE ##################
+X<- numeric.df[1:nrow(input),] #Doesn't work on entire data set, undefined columns selected
+
+runModel('tree', X, Y) #0.0142
+outputCorrelation('tree', X, Y) #tree  filter features:  4  ; CV error= 0.0133  ; std dev= 0.0101
+mrmr('tree', X, Y) #tree Features:  4  ; CV error= 0.0122  ; std dev= 0.0093
+pca('tree', X, Y) #tree  Features:  14  ; CV error= 0.0171  ; std dev= 0.0118
+forwardSelection('tree', X, Y) #
+runEnsemble('tree', X, Y)# 
+
+#the winner is
+
+
+
+############# LM ##################
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
+
+runModel('lm', X, Y) #0.0155
+outputCorrelation('lm', X, Y) #
+mrmr('lm', X, Y) #
+pca('lm', X, Y) #
+forwardSelection('lm', X, Y) #
 runEnsemble('lm', X, Y)
 
+#the winner is
 
+
+############# NNET ##################
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
+
+runModel('svm', X, Y) #0.0155
+outputCorrelation('svm', X, Y) #
+mrmr('svm', X, Y) # 
+pca('svm', X, Y) #
+forwardSelection('svm', X, Y) #
+runEnsemble('svm', X, Y)# 
+
+#the winner is
+
+
+
+############# RIDGE ##################
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
+
+runModel('ridge', X, Y) 
+outputCorrelation('svm', X, Y) #
+mrmr('svm', X, Y) #
+pca('svm', X, Y) #
+forwardSelection('svm', X, Y) #
+runEnsemble('svm', X, Y)# 
+
+#the winner is
+
+
+
+#identify where we can't test on the the whole dataset
+X<- data[1:nrow(input),]
+X<- numeric.df[1:nrow(input),]
+
+runModel('rpart', X, Y)#0.0139
+runModel('svm', X, Y)#0.0147
 runModel('lazy', X, Y)
-runEnsemble('lazy', X, Y)
+runModel('tree', X, Y)
+runModel('lm', X, Y) 
+runModel('ridge', X, Y) # 0.0108
+runModel('nnet', X, Y) #CV error= 9.6651
 
-
-runModel('svm', X, Y)
-runEnsemble('svm', X, Y)
-
-
-# runModel('knn', X, Y)
-# runEnsemble('knn', X, Y)
-
-runModel('nnet', X, Y)
-runEnsemble('nnet', X, Y)
