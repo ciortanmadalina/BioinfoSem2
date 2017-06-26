@@ -238,6 +238,12 @@ sns.lmplot(x='weight', y='hp',  hue='origin', palette = 'Set1', data = auto)
 plt.show()
 
 
+FACET:
+# Plot linear regressions between 'weight' and 'hp' grouped row-wise by 'origin'
+sns.lmplot(x='weight', y='hp',  hue='origin', row='origin', data = auto)
+
+# Display the plot
+plt.show()
 
 
 
