@@ -431,6 +431,91 @@ plt.show()
 
 
 
+# Plot the 30-day moving average in the top left subplot in green
+plt.subplot(2, 2, 1)
+plt.plot(mean_30, 'green')
+plt.plot(aapl, 'k-.')
+plt.xticks(rotation=60)
+plt.title('30d averages')
+
+# Plot the 75-day moving average in the top right subplot in red
+plt.subplot(2, 2, 2)
+plt.plot(mean_75, 'red')
+plt.plot(aapl, 'k-.')
+plt.xticks(rotation=60)
+plt.title('75d averages')
+
+# Plot the 125-day moving average in the bottom left subplot in magenta
+plt.subplot(2, 2, 3)
+plt.plot(mean_125, 'magenta')
+plt.plot(aapl, 'k-.')
+plt.xticks(rotation=60)
+plt.title('125d averages')
+
+# Plot the 250-day moving average in the bottom right subplot in cyan
+plt.subplot(2, 2, 4)
+plt.plot(mean_250, 'cyan')
+plt.plot(aapl, 'k-.')
+plt.xticks(rotation=60)
+plt.title('250d averages')
+
+# Display the plot
+plt.show()
+
+
+
+
+# Plot std_30 in red
+plt.plot(std_30, 'red', label='30d')
+
+# Plot std_75 in cyan
+plt.plot(std_75, 'cyan', label='75d')
+
+# Plot std_125 in green
+plt.plot(std_125, 'green', label='125d')
+
+# Plot std_250 in magenta
+plt.plot(std_250, 'magenta', label='250d')
+
+# Add a legend to the upper left
+plt.legend(loc='upper left')
+
+# Add a title
+plt.title('Moving standard deviations')
+
+# Display the plot
+plt.show()
+
+
+# Load the image into an array: image
+image = plt.imread('640px-Unequalized_Hawkes_Bay_NZ.jpg')
+
+# Display image in top subplot using color map 'gray'
+plt.subplot(2,1,1)
+plt.title('Original image')
+plt.axis('off')
+plt.imshow(image, cmap='gray')
+
+# Flatten the image into 1 dimension: pixels
+pixels = image.flatten()
+
+# Display a histogram of the pixels in the bottom subplot
+plt.subplot(2,1,2)
+plt.xlim((0,255))
+plt.title('Normalized histogram')
+plt.hist(pixels, bins=64, range=(0,256), normed=True, color='red', alpha=0.4)
+
+
+# Display the plot
+plt.show()
+
+
+
+
+
+
+
+
 
 
 
